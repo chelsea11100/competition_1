@@ -19,9 +19,10 @@ public class WorkUser extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     /** auto generator start **/
+    @Column(name = "id", nullable = true, length = 50L)
+    private String id;
 
-
-    @Column(name = "workId", nullable = true, length = 30L)
+    @Column(name = "workId", nullable = true, length = 50L)
     private String workid;
 
     @Column(name = "userId", nullable = true, length = 30L)

@@ -1,5 +1,7 @@
 package com.example.competition_1.controllers;
 
+import com.example.competition_1.DTO.WorkDTO;
+import com.example.competition_1.DTO.WorkUpdateDTO;
 import com.example.competition_1.models.entity.Work;
 import com.example.competition_1.models.entity.WorkUser;
 import com.example.competition_1.services.PortfolioService;
@@ -20,12 +22,9 @@ public class PortfolioController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Work> addPortfolio(@RequestBody Work work, @RequestParam("teamMembers") List<WorkUser> workUsers) {
-        if (work == null) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Work> addPortfolio(@RequestBody WorkDTO workDTO) {
         try {
-            Work addedWork = portfolioService.addPortfolio(work, workUsers);
+            Work addedWork = portfolioService.addPortfolio(workDTO);
             if (addedWork != null) {
                 return ResponseEntity.ok(addedWork);
             } else {
@@ -35,6 +34,7 @@ public class PortfolioController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Work());
         }
     }
+
     @DeleteMapping("/delete")
     public ResponseEntity<String> deletePortfolio(@RequestParam("workId") String workId) {
         boolean isDeleted = portfolioService.deletePortfolio(workId);
@@ -44,23 +44,13 @@ public class PortfolioController {
             return new ResponseEntity<>("删除失败", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @PutMapping("/update")
-    public ResponseEntity<Work> updatePortfolio(@RequestParam("workId") String workId,
-                                                @RequestBody Work updatedWork,
-                                                @RequestParam(value = "teamMembers", required = false) List<WorkUser> workUsers) {
-
-        if (updatedWork == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        try {
-            Work result = portfolioService.updatePortfolio(workId, updatedWork, workUsers);
-            if (result != null) {
-                return ResponseEntity.ok(result);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Work());
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Work());
+    @PutMapping("/update/{workId}")
+    public ResponseEntity<Work> updatePortfolio(@PathVariable String workId, @RequestBody WorkDTO workDTO) {
+        Work work = portfolioService.updatePortfolio(workId, workDTO);
+        if (work != null) {
+            return ResponseEntity.ok(work);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
     @GetMapping("/all")

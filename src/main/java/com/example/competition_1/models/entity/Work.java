@@ -1,6 +1,7 @@
 package com.example.competition_1.models.entity;
 
 import com.example.competition_1.models.entity.base.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import gaarason.database.annotation.Column;
 import gaarason.database.annotation.Primary;
 import gaarason.database.annotation.Table;
@@ -26,7 +27,7 @@ public class Work extends BaseEntity {
 
 
     @Primary(increment = false)
-    @Column(name = "workId", length = 30L)
+    @Column(name = "workId", length = 50L)
     private String workid;
 
     @Column(name = "workName", nullable = true, length = 30L)
@@ -51,12 +52,12 @@ public class Work extends BaseEntity {
     private LocalDate date;
 
 
-    private List<WorkUser> workUsers;
 
-    public void setWorkUsers(List<WorkUser> workUsers) {
-        this.workUsers = workUsers;
-    }
     /** auto generator end **/
+
+
+
+
 
     @Repository
     public static class Model extends BaseModel<Work, String> {

@@ -43,13 +43,14 @@
         <dependency>
             <groupId>com.github.gaarason.database-all</groupId>
             <artifactId>database-spring-boot-starter</artifactId>
-            <version>6.0.0</version>
+            <version>6.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.gaarason.database-all</groupId>
             <artifactId>database-generator</artifactId>
             <version>RELEASE</version>
         </dependency>
+
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
