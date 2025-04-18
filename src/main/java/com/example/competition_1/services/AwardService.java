@@ -112,7 +112,7 @@ public class AwardService {
         try {
             // 通过 awardId 在 award_work_competition 表中查找 workId
             RecordList<AwardWorkCompetition, ?> awardWorkCompetitionRecords = awardWorkCompetitionModel.newQuery()
-                    .where("awardId", awarId)
+                    .where("awarId", awarId)
                     .get();
             List<AwardWorkCompetition> awardWorkCompetitions = awardWorkCompetitionRecords.stream()
                     .map(Record::getEntity)
@@ -156,11 +156,13 @@ public class AwardService {
     public Map<String, Object> getAllAwards() {
         Map<String, Object> result = new HashMap<>();
 
+        System.out.println("开始查询所有 Award 记录");
         // 查询所有 Award 记录
         RecordList<Award, ?> awardRecords = awardModel.newQuery().get();
         List<Award> awards = awardRecords.stream()
                 .map(Record::getEntity)
                 .collect(Collectors.toList());
+        System.out.println("查询到的 Award 记录数量: " + awards.size());
         result.put("awards", awards);
 
         List<Work> allWorks = new ArrayList<>();
@@ -169,49 +171,67 @@ public class AwardService {
 
         for (Award award : awards) {
             String awardId = award.getAwarid();
+            System.out.println("当前处理的 Award 的 awardId: " + awardId);
             if (awardId != null) {
-                // 通过 awardId 查询 award_work_competition 表获取 workId
-                RecordList<AwardWorkCompetition, ?> awardWorkCompetitionRecords = awardWorkCompetitionModel.newQuery()
-                        .where("awardId", awardId)
-                        .get();
-                List<String> workIds = awardWorkCompetitionRecords.stream()
-                        .map(Record::getEntity)
-
-                        .map(AwardWorkCompetition::getWorkid)
-                        .collect(Collectors.toList());
-
-                for (String workId : workIds) {
-                    // 通过 workId 查询 work 表
-                    RecordList<Work, ?> workRecords = workModel.newQuery()
-                            .where("workId", workId)
+                System.out.println("开始通过 awardId 查询 award_work_competition 表获取 workId");
+                try {
+                    // 通过 awardId 查询 award_work_competition 表获取 workId
+                    RecordList<AwardWorkCompetition, ?> awardWorkCompetitionRecords = awardWorkCompetitionModel.newQuery()
+                            .where("awardId", awardId)
                             .get();
-                    List<Work> works = workRecords.stream()
-                            .map(Record::getEntity)
-                            .collect(Collectors.toList());
-                    allWorks.addAll(works);
-
-                    // 通过 workId 查询 work_user 表
-                    RecordList<WorkUser, ?> workUserRecords = workUserModel.newQuery()
-                            .where("workId", workId)
-                            .get();
-                    List<WorkUser> workUsers = workUserRecords.stream()
-                            .map(Record::getEntity)
-                            .collect(Collectors.toList());
-                    allWorkUsers.addAll(workUsers);
-
-                    for (Work work : works) {
-                        String competitionId = work.getCompetitionid();
-                        // 通过 competitionId 查询 competition 表获取 competitionName
-                        RecordList<Competitions, ?> competitionRecords = competitionsModel.newQuery()
-                                .where("competitionId", competitionId)
-                                .get();
-                        List<Competitions> competitions = competitionRecords.stream()
+                    if (awardWorkCompetitionRecords == null) {
+                        System.out.println("查询到的 awardWorkCompetitionRecords 为 null，可能存在问题");
+                    } else {
+                        List<String> workIds = awardWorkCompetitionRecords.stream()
                                 .map(Record::getEntity)
+                                .map(AwardWorkCompetition::getWorkid)
                                 .collect(Collectors.toList());
-                        if (!competitions.isEmpty()) {
-                            competitionNameMap.put(competitionId, competitions.get(0).getName());
+                        System.out.println("通过 awardId " + awardId + " 查询到的 workId 数量: " + workIds.size());
+
+                        for (String workId : workIds) {
+                            System.out.println("开始通过 workId " + workId + " 查询 work 表");
+                            // 通过 workId 查询 work 表
+                            RecordList<Work, ?> workRecords = workModel.newQuery()
+                                    .where("workId", workId)
+                                    .get();
+                            List<Work> works = workRecords.stream()
+                                    .map(Record::getEntity)
+                                    .collect(Collectors.toList());
+                            System.out.println("通过 workId " + workId + " 查询到的 Work 记录数量: " + works.size());
+                            allWorks.addAll(works);
+
+                            System.out.println("开始通过 workId " + workId + " 查询 work_user 表");
+                            // 通过 workId 查询 work_user 表
+                            RecordList<WorkUser, ?> workUserRecords = workUserModel.newQuery()
+                                    .where("workId", workId)
+                                    .get();
+                            List<WorkUser> workUsers = workUserRecords.stream()
+                                    .map(Record::getEntity)
+                                    .collect(Collectors.toList());
+                            System.out.println("通过 workId " + workId + " 查询到的 WorkUser 记录数量: " + workUsers.size());
+                            allWorkUsers.addAll(workUsers);
+
+                            for (Work work : works) {
+                                String competitionId = work.getCompetitionid();
+                                System.out.println("开始通过 competitionId " + competitionId + " 查询 competition 表获取 competitionName");
+                                // 通过 competitionId 查询 competition 表获取 competitionName
+                                RecordList<Competitions, ?> competitionRecords = competitionsModel.newQuery()
+                                        .where("id", competitionId)
+                                        .get();
+                                List<Competitions> competitions = competitionRecords.stream()
+                                        .map(Record::getEntity)
+                                        .collect(Collectors.toList());
+                                System.out.println("通过 competitionId " + competitionId + " 查询到的 Competitions 记录数量: " + competitions.size());
+                                if (!competitions.isEmpty()) {
+                                    competitionNameMap.put(competitionId, competitions.get(0).getName());
+                                    System.out.println("已将 competitionId " + competitionId + " 的 competitionName 添加到 map 中");
+                                }
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    System.out.println("通过 awardId " + awardId + " 查询 award_work_competition 表时发生异常: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }
@@ -220,6 +240,7 @@ public class AwardService {
         result.put("workUsers", allWorkUsers);
         result.put("competitionNameMap", competitionNameMap);
 
+        System.out.println("所有查询完成，准备返回结果");
         return result;
     }
 }

@@ -34,6 +34,9 @@ public class WorkUser extends BaseEntity {
     @Column(name = "type", nullable = true, length = 30L)
     private String type;
 
+    @Column(name = "name", nullable = true, length = 30L)
+    private String name;
+
 
     /** auto generator end **/
 
