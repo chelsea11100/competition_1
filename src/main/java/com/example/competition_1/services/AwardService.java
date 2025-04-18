@@ -43,7 +43,7 @@ public class AwardService {
             // 根据 competitionName 查询 competitionId
             String competitionId = null;
             RecordList<Competitions, ?> competitionRecords = competitionsModel.newQuery()
-                    .where("competitionName", competitionName)
+                    .where("name", competitionName)
                     .get();
             List<Competitions> competitions = competitionRecords.stream()
                     .map(Record::getEntity)
