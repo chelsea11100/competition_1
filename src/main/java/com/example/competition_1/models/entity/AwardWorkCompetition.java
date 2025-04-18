@@ -19,15 +19,16 @@ public class AwardWorkCompetition extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     /** auto generator start **/
+    @Column(name = "id", nullable = true, length = 50L)
+    private String id;
 
-
-    @Column(name = "awardId", nullable = true, length = 30L)
+    @Column(name = "awardId", nullable = true, length = 50L)
     private String awardid;
 
-    @Column(name = "competitionId", nullable = true, length = 40L)
+    @Column(name = "competitionId", nullable = true, length = 50L)
     private String competitionid;
 
-    @Column(name = "workId", nullable = true, length = 40L)
+    @Column(name = "workId", nullable = true, length = 50L)
     private String workid;
 
 

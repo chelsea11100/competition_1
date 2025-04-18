@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/work")
@@ -54,9 +55,9 @@ public class PortfolioController {
         }
     }
     @GetMapping("/all")
-    public ResponseEntity<List<Work>> getAllPortfolios() {
+    public ResponseEntity<Map<String, Object>> getAllPortfolios() {
         try {
-            List<Work> portfolios = portfolioService.getAllPortfolios();
+            Map<String, Object> portfolios = portfolioService.getAllPortfolios();
             return ResponseEntity.ok(portfolios);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

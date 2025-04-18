@@ -1,9 +1,7 @@
 package com.example.competition_1.services;
 
 import com.example.competition_1.DTO.WorkDTO;
-import com.example.competition_1.models.entity.Work;
-import com.example.competition_1.models.entity.WorkUser;
-import com.example.competition_1.models.entity.Competitions;
+import com.example.competition_1.models.entity.*;
 import gaarason.database.contract.eloquent.Record;
 import gaarason.database.contract.eloquent.RecordList;
 import gaarason.database.exception.SQLRuntimeException;
@@ -11,8 +9,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,10 +18,16 @@ public class PortfolioService {
     private final WorkUser.Model workUserModel;
     private final Competitions.Model competitionsModel;
 
-    public PortfolioService(Work.Model workModel, WorkUser.Model workUserModel, Competitions.Model competitionsModel) {
+    private final AwardWorkCompetition.Model awardWorkCompetitionModel;
+
+    private final Award.Model awardModel;
+
+    public PortfolioService(Work.Model workModel, WorkUser.Model workUserModel, Competitions.Model competitionsModel, AwardWorkCompetition.Model awardWorkCompetitionModel, Award.Model awardModel) {
         this.workModel = workModel;
         this.workUserModel = workUserModel;
         this.competitionsModel = competitionsModel;
+        this.awardWorkCompetitionModel = awardWorkCompetitionModel;
+        this.awardModel = awardModel;
     }
 
 
@@ -95,11 +98,20 @@ public class PortfolioService {
     }
 
     public boolean deletePortfolio(String workId) {
-        int deletedCount = workModel.newQuery()
+        // 删除 work_user 表中对应的记录
+        int deletedWorkUserCount = workUserModel.newQuery()
                 .where("workId", workId)
                 .delete();
-        return deletedCount > 0;
+
+        // 删除 work 表中对应的记录
+        int deletedWorkCount = workModel.newQuery()
+                .where("workId", workId)
+                .delete();
+
+        // 只有当两个表都有记录被删除时，才认为删除成功
+        return deletedWorkUserCount > 0 && deletedWorkCount > 0;
     }
+
     public Work updatePortfolio(String workId, WorkDTO workDTO) {
         try {
             // 检查要更新的 Work 是否存在
@@ -168,12 +180,18 @@ public class PortfolioService {
             return null;
         }
     }
-    public List<Work> getAllPortfolios() {
-        RecordList<Work, ?> records = workModel.newQuery().get();
-        List<Work> works = records.stream()
+    public Map<String, Object> getAllPortfolios() {
+        Map<String, Object> result = new HashMap<>();
+
+        // 查询 Work 表
+        RecordList<Work, ?> workRecords = workModel.newQuery().get();
+        List<Work> works = workRecords.stream()
                 .map(Record::getEntity)
                 .collect(Collectors.toList());
+        result.put("works", works);
 
+        // 查询 WorkUser 表
+        List<WorkUser> allWorkUsers = new ArrayList<>();
         for (Work work : works) {
             String workId = work.getWorkid();
             RecordList<WorkUser, ?> userRecords = workUserModel.newQuery()
@@ -182,9 +200,51 @@ public class PortfolioService {
             List<WorkUser> workUsers = userRecords.stream()
                     .map(Record::getEntity)
                     .collect(Collectors.toList());
+            allWorkUsers.addAll(workUsers);
         }
+        result.put("workUsers", allWorkUsers);
 
-        return works;
+        // 查询 Award 表
+        List<Award> allAwards = new ArrayList<>();
+        for (Work work : works) {
+            String workId = work.getWorkid();
+            RecordList<AwardWorkCompetition, ?> awardWorkCompetitionRecords = awardWorkCompetitionModel.newQuery()
+                    .where("workId", workId)
+                    .get();
+            List<String> awardIds = awardWorkCompetitionRecords.stream()
+                    .map(Record::getEntity)
+                    .map(AwardWorkCompetition::getAwardid)
+                    .collect(Collectors.toList());
+            if (!awardIds.isEmpty()) {
+                for (String awardId : awardIds) {
+                    RecordList<Award, ?> awardRecords = awardModel.newQuery()
+                            .where("awardId", awardId)
+                            .get();
+                    List<Award> awards = awardRecords.stream()
+                            .map(Record::getEntity)
+                            .collect(Collectors.toList());
+                    allAwards.addAll(awards);
+                }
+            }
+        }
+        result.put("awards", allAwards);
+
+        // 查询 CompetitionName
+        Map<String, String> competitionNameMap = new HashMap<>();
+        for (Work work : works) {
+            String competitionId = work.getCompetitionid();
+            RecordList<Competitions, ?> competitionRecords = competitionsModel.newQuery()
+                    .where("competitionId", competitionId)
+                    .get();
+            List<Competitions> competitions = competitionRecords.stream()
+                    .map(Record::getEntity)
+                    .collect(Collectors.toList());
+            if (!competitions.isEmpty()) {
+                competitionNameMap.put(competitionId, competitions.get(0).getName());
+            }
+        }
+        result.put("competitionNameMap", competitionNameMap);
+
+        return result;
     }
-
 }

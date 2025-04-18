@@ -45,6 +45,8 @@ public class Award extends BaseEntity {
     private LocalDateTime updateat;
 
 
+
+
     /** auto generator end **/
 
     @Repository

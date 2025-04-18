@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/price")
@@ -19,8 +20,13 @@ public class AwardController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> addAward(@RequestBody Award award) {
-        boolean isAdded = awardService.addAward(award);
+    public ResponseEntity<String> addAward(@RequestBody Map<String, Object> request) {
+        Award award = new Award();
+        // 这里注意要根据前端需求修改！！！
+        String competitionName = (String) request.get("competitionName");
+        String workName = (String) request.get("workName");
+
+        boolean isAdded = awardService.addAward(award, competitionName, workName);
         if (isAdded) {
             return new ResponseEntity<>("添加成功", HttpStatus.OK);
         } else {
@@ -52,9 +58,14 @@ public class AwardController {
 
     // 查看所有获奖记录
     @GetMapping("/all")
-    public ResponseEntity<List<Award>> getAllAwards() {
-        List<Award> awards = awardService.getAllAwards();
-        return new ResponseEntity<>(awards, HttpStatus.OK);
+    public ResponseEntity<Map<String, Object>> getAllAwards() {
+        try{
+            Map<String,Object> result =awardService.getAllAwards();
+            return  new ResponseEntity<>(result,HttpStatus.OK);
+        }
+        catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
